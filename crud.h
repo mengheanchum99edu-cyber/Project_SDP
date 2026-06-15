@@ -6,8 +6,8 @@
 using namespace std;
 
 struct Employee {
-    int id, age, yearOfBirth;
-    string name, role;
+    int id, age, startYear, duration; // FIX 1: added duration back to struct
+    string name, role, dateOfBirth;
     float salary;
     char gender;
     Employee *next;
@@ -20,6 +20,9 @@ struct List {
     Employee *tail;
 };
 
+// FIX 2: forward-declare duarationOfWork so createFileCSV can call it
+int duarationOfWork(Employee *e);
+
 List *createEmptyEmployee() {
     List *list = new List;
     list->size = 0;
@@ -28,15 +31,50 @@ List *createEmptyEmployee() {
     return list;
 }
 
+void createFileCSV(List *list, string filename) {
+    if (list->size == 0) {
+        cout << "The list is empty." << endl;
+        return;
+    }
+
+    ofstream writeToFile(filename);
+
+    if (!writeToFile.is_open()) {
+        cout << "Error: Could not create file " << filename << endl;
+        return;
+    }
+
+    writeToFile << "ID,Name,Age,StartYear,Duration,Gender,Role,Salary,DateOfBirth" << endl;
+
+    Employee *tmp = list->head;
+    while (tmp != nullptr) {
+        int duration = duarationOfWork(tmp); // FIX 2: now correctly called per-node inside the loop
+        writeToFile << tmp->id          << ","
+                    << tmp->name        << ","
+                    << tmp->age         << ","
+                    << tmp->startYear   << ","
+                    << duration         << ","
+                    << tmp->gender      << ","
+                    << tmp->role        << ","
+                    << tmp->salary      << ","
+                    << tmp->dateOfBirth << endl;
+        tmp = tmp->next;
+    }
+
+    writeToFile.close();
+}
+
 void insertEmployeeBeginning(List *&list, Employee *newEmployee) {
     Employee *e = new Employee;
     e->id = newEmployee->id;
     e->name = newEmployee->name;
     e->age = newEmployee->age;
+    e->startYear = newEmployee->startYear;
+    e->duration = newEmployee->duration; // FIX 1: copy duration field
     e->gender = toupper(newEmployee->gender);
     e->role = newEmployee->role;
     e->salary = newEmployee->salary;
-    e->yearOfBirth = newEmployee->yearOfBirth;
+    e->dateOfBirth = newEmployee->dateOfBirth;
     e->previous = nullptr;
 
     if (list->size == 0) {
@@ -49,7 +87,85 @@ void insertEmployeeBeginning(List *&list, Employee *newEmployee) {
         list->head = e;   
     }
     list->size++;
+    createFileCSV(list, "EmployeeInformation.csv");
 }
+
+void clearList(List *list) {
+    Employee *tmp = list->head;
+    while (tmp != nullptr) {
+        Employee *next = tmp->next;
+        delete tmp;
+        tmp = next;
+    }
+    list->head = nullptr;
+    list->tail = nullptr;
+    list->size = 0;
+}
+
+void readFromFileCSV(List *list, string filename) {
+    ifstream readFromFile(filename);
+    if (!readFromFile.is_open()) {
+        cout << "Error: Could not open file " << filename << endl;
+        return;
+    }
+
+    clearList(list);
+
+    string line;
+    getline(readFromFile, line);
+    while (getline(readFromFile, line)) {
+        Employee e;
+        size_t pos = 0;
+        string token;
+        
+        pos = line.find(",");
+        e.id = stoi(line.substr(0, pos));
+        line.erase(0, pos + 1);
+
+        // Name
+        pos = line.find(",");
+        e.name = line.substr(0, pos);
+        line.erase(0, pos + 1);
+
+        // Age
+        pos = line.find(",");
+        e.age = stoi(line.substr(0, pos));
+        line.erase(0, pos + 1);
+
+        // Start Year
+        pos = line.find(",");
+        e.startYear = stoi(line.substr(0, pos));
+        line.erase(0, pos + 1);
+
+        // Duration
+        pos = line.find(",");
+        e.duration = stoi(line.substr(0, pos));
+        line.erase(0, pos + 1);
+
+        // Gender
+        pos = line.find(",");
+        e.gender = line.substr(0, pos)[0];
+        line.erase(0, pos + 1);
+
+        // Role
+        pos = line.find(",");
+        e.role = line.substr(0, pos);
+        line.erase(0, pos + 1);
+
+        // Salary
+        pos = line.find(",");
+        e.salary = stof(line.substr(0, pos));
+        line.erase(0, pos + 1);
+
+        // Date of Birth
+        e.dateOfBirth = line;
+
+        insertEmployeeBeginning(list, &e);
+    }
+    readFromFile.close();
+}
+
+
 
 void deleteEmployeeEnd(List *&list) {
     if (list->size == 0) {
@@ -66,7 +182,9 @@ void deleteEmployeeEnd(List *&list) {
     }
     delete temp;
     list->size--;
+    createFileCSV(list, "EmployeeInformation.csv");
 }
+
 void headerOfDisplay(){
     string divider = "=======================================================================";
 
@@ -75,10 +193,12 @@ void headerOfDisplay(){
          << setw(6)  << "ID"     << " | "
          << setw(20) << "Name"   << " | "
          << setw(5)  << "Age"    << " | "
+         << setw(10)  << "Start Year" << " | "
+         << setw(8)  << "Duration" << " | "
          << setw(8)  << "Gender" << " | "
          << setw(15) << "Role"   << " | "
          << setw(10) << "Salary" << " | "
-         << setw(6)  << "Year"   << " |"
+         << setw(10)  << "Year"   << " |"
          << endl;
     cout << divider << endl;    
 }
@@ -88,12 +208,15 @@ void displayOneEmployee(Employee *tmp) {
          << setw(6)  << tmp->id          << " | "
          << setw(20) << tmp->name        << " | "
          << setw(5)  << tmp->age         << " | "
+         << setw(10)  << tmp->startYear   << " | "
+         << setw(8)  << tmp->duration    << " | "
          << setw(8)  << tmp->gender      << " | "
          << setw(15) << tmp->role        << " | "
          << setw(10) << tmp->salary      << " | "
-         << setw(6)  << tmp->yearOfBirth << " |"
+         << setw(10)  << tmp->dateOfBirth << " |"
          << endl;
 }
+
 void deleteEmployeeById(List *&list, int searchId) {
     bool searchIdFound = false;
     if (list->size == 0) {
@@ -114,25 +237,26 @@ void deleteEmployeeById(List *&list, int searchId) {
                 list->tail = temp->previous;
             delete temp;
             list->size--;
-            cout << "Employee with ID " << searchId << " deleted successfully." << endl;
-            return;
             searchIdFound = true;
+            cout << "Employee with ID " << searchId << " deleted successfully." << endl;
+            createFileCSV(list, "EmployeeInformation.csv");
+            cout << "All employee after the deletion:" << endl;
+            headerOfDisplay();
+            Employee *t = list->head;
+            while (t != nullptr) {
+                displayOneEmployee(t);
+                t = t->next;
+            }
+            return;
         }
         temp = temp->next;
     }
     if (!searchIdFound) {
         cout << "Employee with ID " << searchId << " not found." << endl;
     }
-    cout << "All employee after the deletion:" << endl;
-    headerOfDisplay();
-    temp = list->head;
-    while (temp != nullptr) {
-        displayOneEmployee(temp);
-        temp = temp->next;
-    }
 }
 
-void displayEmployees(List *list) {
+void displayAllEmployees(List *list) {
     if (list->size == 0) {
         cout << "The list is empty." << endl;
         return;
@@ -220,22 +344,51 @@ void UpdateEmployeeById(List *list, int searchId, Employee *updatedEmployee) {
         cout << "The list is empty." << endl;
         return;
     }
+
     Employee *tmp = list->head;
+
     while (tmp != nullptr) {
         if (tmp->id == searchId) {
+            cout << "Enter new name: ";
+            getline(cin, updatedEmployee->name);
+            cout << "Enter new start year: ";
+            cin >> updatedEmployee->startYear;
+            cout << "Enter new age: ";
+            cin >> updatedEmployee->age;
+            cout << "Enter new gender (F/M): ";
+            cin >> updatedEmployee->gender;
+            updatedEmployee->gender = toupper(updatedEmployee->gender);
+            cout << "Enter new role: ";
+            cin >> updatedEmployee->role;
+            cout << "Enter new salary: ";
+            cin >> updatedEmployee->salary;
+            cin.ignore();
+            cout << "Enter new date of birth (DD/MM/YYYY): ";
+            getline(cin, updatedEmployee->dateOfBirth);
+
+
+            // Update the existing employee node
             tmp->name        = updatedEmployee->name;
             tmp->age         = updatedEmployee->age;
+            tmp->startYear   = updatedEmployee->startYear;
             tmp->gender      = updatedEmployee->gender;
             tmp->role        = updatedEmployee->role;
             tmp->salary      = updatedEmployee->salary;
-            tmp->yearOfBirth = updatedEmployee->yearOfBirth;
-            cout << "Employee with ID " << searchId << " updated successfully." << endl;
+            tmp->dateOfBirth = updatedEmployee->dateOfBirth;
+
+            cout << "Employee with ID " << searchId 
+                 << " updated successfully." << endl;
+
+            createFileCSV(list, "EmployeeInformation.csv");
             return;
         }
+
         tmp = tmp->next;
     }
+
     cout << "Employee with ID " << searchId << " not found." << endl;
 }
+
 void exchange(int *a, int *b) {
     int tmp = *a;
     *a = *b;
@@ -260,35 +413,47 @@ void exchange(string *a, string *b) {
     *b = tmp;
 }
 
+void switchAllFields(Employee *a, Employee *b) {
+    exchange(&a->id,          &b->id);
+    exchange(&a->name,        &b->name);
+    exchange(&a->age,         &b->age);
+    exchange(&a->startYear,   &b->startYear);
+    exchange(&a->duration,    &b->duration); // FIX 1: duration field exists now
+    exchange(&a->gender,      &b->gender);
+    exchange(&a->role,        &b->role);
+    exchange(&a->salary,      &b->salary);
+    exchange(&a->dateOfBirth, &b->dateOfBirth);
+}
+
+void switchAllInformation(List *list, bool &swapped) {
+    Employee *tmp = list->head;
+    while (tmp->next != nullptr) {
+        if (tmp->id > tmp->next->id) {
+            switchAllFields(tmp, tmp->next);
+            swapped = true;
+        }
+        tmp = tmp->next;
+    }
+}
+
 void sortEmployeeByIdAsc(List *list) {
-    if (list->size <1) return;
+    if (list->size <= 1) return;
 
     bool swapped;
     do {
-        swapped = false;
-        Employee *tmp = list->head;
-        while (tmp->next != nullptr) {
-            if (tmp->id > tmp->next->id) {
-                exchange(&tmp->id, &tmp->next->id);
-                exchange(&tmp->name, &tmp->next->name);
-                exchange(&tmp->age, &tmp->next->age);
-                exchange(&tmp->gender, &tmp->next->gender);
-                exchange(&tmp->role, &tmp->next->role);
-                exchange(&tmp->salary, &tmp->next->salary);
-                exchange(&tmp->yearOfBirth, &tmp->next->yearOfBirth);
-                swapped = true;
-            }
-            tmp = tmp->next;
-        }
-    } while (swapped);
+        swapped = false;                    
+        switchAllInformation(list, swapped);  
+    } while (swapped);                        
+
     cout << "Employees sorted by ID in ascending order." << endl;
-    Employee *tmp = list->head;
+    Employee *tmp = list->head;             
     headerOfDisplay();
     while (tmp != nullptr) {
         displayOneEmployee(tmp);
         tmp = tmp->next;
     }
 }
+
 void sortEmployeeByIdDesc(List *list) {
     if (list->size < 1) return;
 
@@ -298,13 +463,7 @@ void sortEmployeeByIdDesc(List *list) {
         Employee *tmp = list->head;
         while (tmp->next != nullptr) {
             if (tmp->id < tmp->next->id) {
-                exchange(&tmp->id, &tmp->next->id);
-                exchange(&tmp->name, &tmp->next->name);
-                exchange(&tmp->age, &tmp->next->age);
-                exchange(&tmp->gender, &tmp->next->gender);
-                exchange(&tmp->role, &tmp->next->role);
-                exchange(&tmp->salary, &tmp->next->salary);
-                exchange(&tmp->yearOfBirth, &tmp->next->yearOfBirth);
+                switchAllFields(tmp, tmp->next);
                 swapped = true;
             }
             tmp = tmp->next;
@@ -318,6 +477,7 @@ void sortEmployeeByIdDesc(List *list) {
         tmp = tmp->next;
     }
 }
+
 void sortEmployeeBySalaryAsc(List *list) {
     if (list->size < 1) return;
 
@@ -327,13 +487,7 @@ void sortEmployeeBySalaryAsc(List *list) {
         Employee *tmp = list->head;
         while (tmp->next != nullptr) {
             if (tmp->salary > tmp->next->salary) {
-                exchange(&tmp->id, &tmp->next->id);
-                exchange(&tmp->name, &tmp->next->name);
-                exchange(&tmp->age, &tmp->next->age);
-                exchange(&tmp->gender, &tmp->next->gender);
-                exchange(&tmp->role, &tmp->next->role);
-                exchange(&tmp->salary, &tmp->next->salary);
-                exchange(&tmp->yearOfBirth, &tmp->next->yearOfBirth);
+                switchAllFields(tmp, tmp->next);
                 swapped = true;
             }
             tmp = tmp->next;
@@ -347,6 +501,7 @@ void sortEmployeeBySalaryAsc(List *list) {
         tmp = tmp->next;
     }
 }
+
 void sortEmployeeBySalaryDesc(List *list) {
     if (list->size < 1) return;
 
@@ -356,13 +511,7 @@ void sortEmployeeBySalaryDesc(List *list) {
         Employee *tmp = list->head;
         while (tmp->next != nullptr) {
             if (tmp->salary < tmp->next->salary) {
-                exchange(&tmp->id, &tmp->next->id);
-                exchange(&tmp->name, &tmp->next->name);
-                exchange(&tmp->age, &tmp->next->age);
-                exchange(&tmp->gender, &tmp->next->gender);
-                exchange(&tmp->role, &tmp->next->role);
-                exchange(&tmp->salary, &tmp->next->salary);
-                exchange(&tmp->yearOfBirth, &tmp->next->yearOfBirth);
+                switchAllFields(tmp, tmp->next);
                 swapped = true;
             }
             tmp = tmp->next;
@@ -376,6 +525,7 @@ void sortEmployeeBySalaryDesc(List *list) {
         tmp = tmp->next;
     }
 }
+
 void sortEmployeeByNameAsc(List *list) {
     if (list->size < 1) return;
 
@@ -385,13 +535,7 @@ void sortEmployeeByNameAsc(List *list) {
         Employee *tmp = list->head;
         while (tmp->next != nullptr) {
             if (tmp->name > tmp->next->name) {
-                exchange(&tmp->id, &tmp->next->id);
-                exchange(&tmp->name, &tmp->next->name);
-                exchange(&tmp->age, &tmp->next->age);
-                exchange(&tmp->gender, &tmp->next->gender);
-                exchange(&tmp->role, &tmp->next->role);
-                exchange(&tmp->salary, &tmp->next->salary);
-                exchange(&tmp->yearOfBirth, &tmp->next->yearOfBirth);
+                switchAllFields(tmp, tmp->next);
                 swapped = true;
             }
             tmp = tmp->next;
@@ -405,6 +549,7 @@ void sortEmployeeByNameAsc(List *list) {
         tmp = tmp->next;
     }
 }
+
 void sortEmployeeByNameDesc(List *list) {
     if (list->size < 1) return;
 
@@ -414,13 +559,7 @@ void sortEmployeeByNameDesc(List *list) {
         Employee *tmp = list->head;
         while (tmp->next != nullptr) {
             if (tmp->name < tmp->next->name) {
-                exchange(&tmp->id, &tmp->next->id);
-                exchange(&tmp->name,        &tmp->next->name);
-                exchange(&tmp->age,         &tmp->next->age);
-                exchange(&tmp->gender,      &tmp->next->gender);
-                exchange(&tmp->role,        &tmp->next->role);
-                exchange(&tmp->salary,      &tmp->next->salary);
-                exchange(&tmp->yearOfBirth, &tmp->next->yearOfBirth);
+                switchAllFields(tmp, tmp->next);
                 swapped = true;
             }
             tmp = tmp->next;
@@ -433,4 +572,9 @@ void sortEmployeeByNameDesc(List *list) {
         displayOneEmployee(tmp);
         tmp = tmp->next;
     }
+}
+
+int duarationOfWork(Employee *e) {
+    e->duration = 2026 - e->startYear;
+    return e->duration;
 }
