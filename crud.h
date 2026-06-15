@@ -6,7 +6,7 @@
 using namespace std;
 
 struct Employee {
-    int id, age, startYear, duration; // FIX 1: added duration back to struct
+    int id, age, startYear, duration;
     string name, role, dateOfBirth;
     float salary;
     char gender;
@@ -20,7 +20,7 @@ struct List {
     Employee *tail;
 };
 
-// FIX 2: forward-declare duarationOfWork so createFileCSV can call it
+
 int duarationOfWork(Employee *e);
 
 List *createEmptyEmployee() {
@@ -48,7 +48,7 @@ void createFileCSV(List *list, string filename) {
 
     Employee *tmp = list->head;
     while (tmp != nullptr) {
-        int duration = duarationOfWork(tmp); // FIX 2: now correctly called per-node inside the loop
+        int duration = duarationOfWork(tmp); 
         writeToFile << tmp->id          << ","
                     << tmp->name        << ","
                     << tmp->age         << ","
@@ -70,7 +70,7 @@ void insertEmployeeBeginning(List *&list, Employee *newEmployee) {
     e->name = newEmployee->name;
     e->age = newEmployee->age;
     e->startYear = newEmployee->startYear;
-    e->duration = newEmployee->duration; // FIX 1: copy duration field
+    e->duration = newEmployee->duration; 
     e->gender = toupper(newEmployee->gender);
     e->role = newEmployee->role;
     e->salary = newEmployee->salary;
@@ -116,7 +116,7 @@ void readFromFileCSV(List *list, string filename) {
     while (getline(readFromFile, line)) {
         Employee e;
         size_t pos = 0;
-        string token;
+        //string token;
         
         pos = line.find(",");
         e.id = stoi(line.substr(0, pos));
@@ -214,7 +214,7 @@ void displayOneEmployee(Employee *tmp) {
          << setw(15) << tmp->role        << " | "
          << setw(10) << tmp->salary      << " | "
          << setw(10)  << tmp->dateOfBirth << " |"
-         << endl;
+         << endl<<endl;
 }
 
 void deleteEmployeeById(List *&list, int searchId) {
@@ -418,7 +418,7 @@ void switchAllFields(Employee *a, Employee *b) {
     exchange(&a->name,        &b->name);
     exchange(&a->age,         &b->age);
     exchange(&a->startYear,   &b->startYear);
-    exchange(&a->duration,    &b->duration); // FIX 1: duration field exists now
+    exchange(&a->duration,    &b->duration); 
     exchange(&a->gender,      &b->gender);
     exchange(&a->role,        &b->role);
     exchange(&a->salary,      &b->salary);
@@ -573,7 +573,6 @@ void sortEmployeeByNameDesc(List *list) {
         tmp = tmp->next;
     }
 }
-
 int duarationOfWork(Employee *e) {
     e->duration = 2026 - e->startYear;
     return e->duration;
