@@ -198,7 +198,7 @@ void headerOfDisplay(){
          << setw(8)  << "Gender" << " | "
          << setw(15) << "Role"   << " | "
          << setw(10) << "Salary" << " | "
-         << setw(10)  << "Year"   << " |"
+         << setw(11)  << "Year"   << " |"
          << endl;
     cout << divider << endl;    
 }
@@ -339,7 +339,7 @@ void searchEmployeeByName(List *list, string searchName) {
 
 
 
-void UpdateEmployeeById(List *list, int searchId, Employee *updatedEmployee) {
+void UpdateAllInfoEmployeeById(List *list, int searchId, Employee *updatedEmployee) {
     if (list->size == 0) {
         cout << "The list is empty." << endl;
         return;
@@ -386,6 +386,150 @@ void UpdateEmployeeById(List *list, int searchId, Employee *updatedEmployee) {
         tmp = tmp->next;
     }
 
+    cout << "Employee with ID " << searchId << " not found." << endl;
+}
+void updateNamebyId(List *list, int searchId, string newName) {
+    if (list->size == 0) {
+        cout << "The list is empty." << endl;
+        return;
+    }
+    Employee *tmp = list->head;
+    while (tmp != nullptr) {
+        if (tmp->id == searchId) {
+            tmp->name = newName;
+            cout << "Employee with ID " << searchId 
+                 << " updated successfully." << endl;
+            createFileCSV(list, "EmployeeInformation.csv");
+            return;
+        }
+        tmp = tmp->next;
+    }
+    cout << "Employee with ID " << searchId << " not found." << endl;
+}
+void updateAgebyId(List *list, int searchId, int newAge) {
+    if (list->size == 0) {
+        cout << "The list is empty." << endl;
+        return;
+    }
+    Employee *tmp = list->head;
+    while (tmp != nullptr) {
+        if (tmp->id == searchId) {
+            tmp->age = newAge;
+            cout << "Employee with ID " << searchId 
+                 << " updated successfully." << endl;
+            createFileCSV(list, "EmployeeInformation.csv");
+            return;
+        }
+        tmp = tmp->next;
+    }
+    cout << "Employee with ID " << searchId << " not found." << endl;
+}
+void updateStartYearbyId(List *list, int searchId, int newStartYear) {
+    if (list->size == 0) {
+        cout << "The list is empty." << endl;
+        return;
+    }
+    Employee *tmp = list->head;
+    while (tmp != nullptr) {
+        if (tmp->id == searchId) {
+            tmp->startYear = newStartYear;
+            cout << "Employee with ID " << searchId 
+                 << " updated successfully." << endl;
+            createFileCSV(list, "EmployeeInformation.csv");
+            return;
+        }
+        tmp = tmp->next;
+    }
+    cout << "Employee with ID " << searchId << " not found." << endl;
+}
+void updateDurationbyId(List *list, int searchId, int newDuration) {
+    if (list->size == 0) {
+        cout << "The list is empty." << endl;
+        return;
+    }
+    Employee *tmp = list->head;
+    while (tmp != nullptr) {
+        if (tmp->id == searchId) {
+            tmp->duration = newDuration;
+            cout << "Employee with ID " << searchId 
+                 << " updated successfully." << endl;
+            createFileCSV(list, "EmployeeInformation.csv");
+            return;
+        }
+        tmp = tmp->next;
+    }
+    cout << "Employee with ID " << searchId << " not found." << endl;
+}
+void updateGenderbyId(List *list, int searchId, char newGender) {
+    if (list->size == 0) {
+        cout << "The list is empty." << endl;
+        return;
+    }
+    Employee *tmp = list->head;
+    while (tmp != nullptr) {
+        if (tmp->id == searchId) {
+            tmp->gender = newGender;
+            cout << "Employee with ID " << searchId 
+                 << " updated successfully." << endl;
+            createFileCSV(list, "EmployeeInformation.csv");
+            return;
+        }
+        tmp = tmp->next;
+    }
+    cout << "Employee with ID " << searchId << " not found." << endl;
+}
+void updateRolebyId(List *list, int searchId, string newRole) {
+    if (list->size == 0) {
+        cout << "The list is empty." << endl;
+        return;
+    }
+    Employee *tmp = list->head;
+    while (tmp != nullptr) {
+        if (tmp->id == searchId) {
+            tmp->role = newRole;
+            cout << "Employee with ID " << searchId 
+                 << " updated successfully." << endl;
+            createFileCSV(list, "EmployeeInformation.csv");
+            return;
+        }
+        tmp = tmp->next;
+    }
+    cout << "Employee with ID " << searchId << " not found." << endl;
+}
+void updateSalarybyId(List *list, int searchId, float newSalary) {
+    if (list->size == 0) {
+        cout << "The list is empty." << endl;
+        return;
+    }
+    Employee *tmp = list->head;
+    while (tmp != nullptr) {
+        if (tmp->id == searchId) {
+            tmp->salary = newSalary;
+            cout << "Employee with ID " << searchId 
+                 << " updated successfully." << endl;
+            createFileCSV(list, "EmployeeInformation.csv");
+            return;
+        }
+        tmp = tmp->next;
+    }
+    cout << "Employee with ID " << searchId << " not found." << endl;
+}
+void updateDateOfBirthbyId(List *list, int searchId, string newDateOfBirth){
+    if (list->size == 0) {
+        cout << "The list is empty." << endl;
+        return;
+    }
+    Employee *tmp = list->head;
+    while (tmp != nullptr) {
+        if (tmp->id == searchId) {
+            tmp->dateOfBirth = newDateOfBirth;
+            cout << "Employee with ID " << searchId 
+                 << " updated successfully." << endl;
+            createFileCSV(list, "EmployeeInformation.csv");
+            return;
+        }
+        tmp = tmp->next;
+    }
     cout << "Employee with ID " << searchId << " not found." << endl;
 }
 
